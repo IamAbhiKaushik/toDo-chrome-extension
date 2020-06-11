@@ -2,24 +2,15 @@ let changeColor = document.getElementById('changeColor');
 let addButton = document.getElementById('addButton');
 let inputElement = document.getElementById('inputElement');
 let showTask = document.getElementById('showTask');
+var text;
+var records=[];
 
   chrome.storage.sync.get('color', function(data) {
     changeColor.style.backgroundColor = data.color;
     console.log(data.color)
     changeColor.setAttribute('value', data.color);
   });
-
-  chrome.storage.sync.get('records', function(data) {
-    
-    if (data.records.length > 0) {
-      console.log(data.records);
-    }
-    else {
-      data.records = ['Sample Task'];
-    }
-    showTask.innerHTML = data.records.toString();
-  });
-
+  updateContent();
 
   changeColor.onclick = function(element) {
     let color = element.target.value;
@@ -32,27 +23,57 @@ let showTask = document.getElementById('showTask');
 
   addButton.onclick = function(element) {
     let value = inputElement.value;
-    console.log(value);
-
-    chrome.storage.sync.get({
-    records:[] //setting an empty default value
-    },
-    function(data) {
-       console.log(data.records);
-       update(data.records, value); //storing the storage value in a variable and passing to update function
-    }
-    );  
-    // chrome.storage.sync.set('color', function(data) {
-    //   changeColor.style.backgroundColor = data.color;
-    //   changeColor.setAttribute('value', data.color);
-    // });
+    inputElement.value = "";
+    update(value);
   }
 
-  function update(array, value)
-   {
-    array.push(value);
-    //then call the set to update with modified value
-    chrome.storage.sync.set({records:array}, function() {
-        console.log(array);
+  function update(value){
+    records.push(value);
+    chrome.storage.sync.set({records:records}, function() {
+        console.log(records);
     });
+    updateContent();
+  }
+
+  function updateContent(){
+    text = "";
+    if (records.length==0){
+      chrome.storage.sync.get('records', function(data) {
+        if (data.records.length == 0) {
+        records = ['New Tasks'];
+        }
+        else{
+          records = data.records;
+        }
+      });
     }
+
+    for (i = 0; i < records.length; i++) {
+      text += "<div class='task'>";
+      text += "<p>" + records[i] + "</p>";
+      text += "<div class='right'><img src='images/anydo.svg' alt='"+ i +"'>";
+      text += "<img src='images/delete.svg' alt='"+"X:"+i +"'></div>";
+      text += "</div>";
+    }
+    showTask.innerHTML = text;
+    
+    var all_images, image_index;
+    all_images = document.querySelectorAll("img");
+    for (image_index = 0; image_index < all_images.length; image_index++) {
+      all_images[image_index].addEventListener("click", function(){
+        alt_text = this.alt;
+        perform_task(alt_text);
+      });
+    }
+  }
+
+  function perform_task(alt_text){
+    if (alt_text[0] == "X"){
+      delete_task_from_data()
+    }
+    else{
+      mark_task_as_done()
+    }
+    updateContent()
+    addButton.innerHTML = alt_text;
+  }

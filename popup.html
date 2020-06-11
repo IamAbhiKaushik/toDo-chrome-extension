@@ -3,22 +3,85 @@
     <head>
       <style>
       	body {
-      		height: 120px;
-      		width: 120px;
-      		background: white;
+      		min-height: 400px;
+          width: 300px;
+          background: white;
+          
+          position: relative;
       	}
-        button {
+        textarea {
+          display: block;
+          padding: 4px;
+          margin: 8px auto;
+          width: 80%;
+        }
+
+        #changeColor {
+          position: absolute;
           height: 30px;
           width: 30px;
           outline: none;
+          bottom: 4px;
+          left: 4px;
         }
+        .addButton{
+          width: 60%;
+          margin: auto;
+        }
+        #addButton {
+          width: 100%;
+          background: white;
+          border: 1px solid gray;
+          padding: 4px;
+          border-radius: 4px;
+        }
+        .tasks{
+          margin: 8px auto;
+          
+        }
+        .task{
+          align-items: center;
+          display: flex;
+          border-bottom: 1px solid gray;
+          padding: 4px 0px;
+        }
+        .task p{
+          margin: 0;
+          width: 80%;
+        }
+        .task .right{
+          align-items: center;
+          display: flex;
+          width: 30%;
+
+        }
+        .task img{
+          width: 24px;
+        }
+
       </style>
     </head>
     <body>
-		<input name="inputElement" id="inputElement"> 
+		
+    <textarea name="inputElement" id="inputElement" placeholder="Put your task here"></textarea>
+
 		<button id="changeColor"></button>
-		<button id="addButton"> Add new Task</button>
-		<p id ="showTask"></p>
+		<div class="addButton">
+      <button id="addButton"> Add Task</button>  
+    </div>
+    
+		<div class="tasks" id ="showTask">
+      <!-- <div class="task">
+        <p>This is a Task</p>
+        <div class="right">
+        <img src="images/anydo.svg" alt="D" >
+        <img src="images/delete.svg" alt="X" >
+        </div>
+      </div> -->
+    </div>
+      <!-- Div for Extra space -->
+      <div style="height: 40px;width: 100%;display: block;"></div>
+      </div>
 
 
   <script src="popup.js"></script>
