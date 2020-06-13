@@ -2,78 +2,86 @@ let changeColor = document.getElementById('changeColor');
 let addButton = document.getElementById('addButton');
 let inputElement = document.getElementById('inputElement');
 let showTask = document.getElementById('showTask');
-var text;
-var records=[];
 
-  chrome.storage.sync.get('color', function(data) {
-    changeColor.style.backgroundColor = data.color;
-    console.log(data.color)
-    changeColor.setAttribute('value', data.color);
+var text, todos=[], complete=[];
+let images;
+
+
+chrome.storage.sync.get('todos', function(data) {
+  if (data.todos === null) {todos = ['New Tasks'];}
+  else{todos = data.todos;}
+
+  done = data.done;
+  refreshPage();
+});
+
+
+function refreshPage(){
+  text = "";
+  for (i = 0; i < todos.length; i++) {
+    appendToView(todos[i], i, false);
+  }
+  showTask.innerHTML = text;
+  refreshImages();
+}
+
+function refreshImages(){
+  deleteIcons = document.querySelectorAll('.markDelete'); 
+  doneIcons = document.querySelectorAll('.markDone'); 
+
+  deleteIcons.forEach(el => el.addEventListener('click', event => {
+    triggerDelete(event.target.alt);
+  }));
+
+  doneIcons.forEach(el => el.addEventListener('click', event => {
+    triggerDone(event.target.alt);
+  }));
+
+
+}
+
+// todos value set to todo array 
+
+addButton.onclick = function(element) {
+  let value = inputElement.value;
+  inputElement.value = "";
+  updateTasks(value);
+}
+
+function updateTasks(value){
+  todos.push(value);
+  chrome.storage.sync.set({todos:todos}, function() {
+      appendToView(value, todos.length-1);
+      refreshImages();
   });
-  updateContent();
+}
 
-  changeColor.onclick = function(element) {
-    let color = element.target.value;
-    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-      chrome.tabs.executeScript(
-          tabs[0].id,
-          {code: 'document.body.style.backgroundColor = "' + color + '";'});
+function appendToView(value, index, updateView=true){
+    text += "<div class='task'>";
+    text += "<p>" + value + "</p>";
+    text += "<div class='right'>";
+    text += "<img class='markDone' src='images/anydo.svg' alt='"+ index +"'>";
+    text += "<img class='markDelete' src='images/delete.svg' alt='"+ index +"'></div>";
+    text += "</div>";    
+  if (updateView) {showTask.innerHTML = text;}
+}
+
+function triggerDelete(index) {
+  if (todos.length>0){
+    todos.splice(index, 1);
+    chrome.storage.sync.set({todos:todos}, function() {
+      refreshPage();
     });
-  };
-
-  addButton.onclick = function(element) {
-    let value = inputElement.value;
-    inputElement.value = "";
-    update(value);
   }
+}
 
-  function update(value){
-    records.push(value);
-    chrome.storage.sync.set({records:records}, function() {
-        console.log(records);
-    });
-    updateContent();
-  }
+function triggerDone(index) {
+  const value = todos[index];
+  triggerDelete(index);
+  done.push(value);
+  chrome.storage.sync.set({done:done}, function() {
+      console.log("added value" + value + "to Done");
+  });
 
-  function updateContent(){
-    text = "";
-    if (records.length==0){
-      chrome.storage.sync.get('records', function(data) {
-        if (data.records.length == 0) {
-        records = ['New Tasks'];
-        }
-        else{
-          records = data.records;
-        }
-      });
-    }
+}
 
-    for (i = 0; i < records.length; i++) {
-      text += "<div class='task'>";
-      text += "<p>" + records[i] + "</p>";
-      text += "<div class='right'><img src='images/anydo.svg' alt='"+ i +"'>";
-      text += "<img src='images/delete.svg' alt='"+"X:"+i +"'></div>";
-      text += "</div>";
-    }
-    showTask.innerHTML = text;
-    
-    var all_images, image_index;
-    all_images = document.querySelectorAll("img");
-    for (image_index = 0; image_index < all_images.length; image_index++) {
-      all_images[image_index].addEventListener("click", function(){
-        alt_text = this.alt;
-        perform_task(alt_text);
-      });
-    }
-  }
-
-  function perform_task(alt_text){
-    if (alt_text[0] == "X"){
-      delete_task_from_data()
-    }
-    else{
-      mark_task_as_done()
-    }
-    updateContent()
-    addButton.innerHTML = alt_text;
-  }
